@@ -12,7 +12,7 @@ float coxa = 37, fermur= 70, tibia = 100;
 
 float leg_initial [3][4] = {{ 75.66,  75.66, -75.66, -75.66},  // [axis] [leg no] 0=x, 1=y 2=z; 0 to 3
                             { 75.66, -75.66,  75.66, -75.66},
-                            { -80  ,  -80, -80, -80}};
+                            { -60  ,  -60, -60, -60}};
                            
 float leg_pos [3][4] = {0};
 float servo_pos [3][4] = {0}; //servo position after ik calculations
@@ -30,10 +30,8 @@ void setup() {
   int i,j,k;
   
   for (k = 2; k < 14; k++){
-    
-    pwm.setPWM(k, 0,  365);  //all motors at 180
-  
-  }
+        pwm.setPWM(k, 0,  365);  //all motors at 180
+    }
   
   for (i = 0; i < 3; i++) {
     for ( j = 0; j < 4; j++){
@@ -61,17 +59,22 @@ void loop (){
     inPut =0;
   }*/
   Serial.println("loop");
-  delay(2000);
-  inPut = 1;
-  if (inPut == 1 ){
-    creepwalk ( 100 );
+  delay(1000);
+ 
+  int state = 2;
+  if (state == 1 ){
+    creepwalk ( 80 );
   }
-   if (inPut == 3 ){
-    
+  if (state == 2 ){  
+    single_step(0, -40, 2);
+    single_step(0, 40, 0);
+  }
+  if (state == 3 ){  
     home_pos();
   }
- 
-
+  if (state == 4 ){  
+    movebody(15,0);
+  }
 }
 
 void single_step (float d_x, float d_y, int leg_no){
@@ -79,22 +82,29 @@ void single_step (float d_x, float d_y, int leg_no){
   leg_pos[0][leg_no] += d_x/2;
   leg_pos[1][leg_no] += d_y/2;
   leg_pos[2][leg_no] += 50;
-    for (i = 0; i < 4; i++){
+
+  transformation (leg_no);
+  for (i = 0; i < 4; i++){
     if(i != leg_no){
       transformation (i);
     }
   } 
-  transformation (leg_no);
   motor_actuation();
   
   leg_pos[0][leg_no] += d_x/2;
   leg_pos[1][leg_no] += d_y/2;
   leg_pos[2][leg_no] -= 50;
-    for (i = 0; i < 4; i++){
+
+  transformation (leg_no);
+   for (i = 0; i < 4; i++){
     if(i != leg_no){
       transformation (i);
     }
   } 
+  motor_actuation();
+  
+  leg_pos[0][leg_no] -= d_x;
+  leg_pos[1][leg_no] -= d_y;
   transformation (leg_no);
   motor_actuation();
 }
@@ -103,14 +113,14 @@ void creepwalk (float stride){
   
   Serial.println( "Creepwalk");
   //initalization steps
-  float side_step = 20;
+  float side_step = 30;
   
-   //if(Serial.available()){
+  //if(Serial.available()){
     
-  movebody  ( -side_step, 0 );
-  movestep (0,  stride/2,  4-1 );  //leg 4
-  movestep (0,  stride/2,  3-1 );
-  movebody ( side_step , 0);
+  //movebody( -side_step, 0 );
+  movestep(-side_step, stride/2, 4-1 );  //leg =3
+  movestep(0, stride/2, 2-1 );
+  //movebody( side_step , 0);
    //}
   // walking
   //if(Serial.available()){
@@ -118,14 +128,14 @@ void creepwalk (float stride){
   //for ( i = 0; i <5; i ++){} //takes 5 cycles 
     
     while ( inPut != 3 ){
-      movebody ( side_step , 0);
-      movestep (0,  stride, 2-1 );
+      //movebody ( side_step , 0);
+      movestep (2.0*side_step,  stride, 3-1 );
       movestep (0,  stride, 1-1 );
     
-      movebody (-side_step*2 , 0);
-      movestep (0,  stride, 4-1 );
-      movestep (0,  stride, 3-1 );
-      movebody ( side_step , 0 );
+      //movebody (-side_step*2 , 0);
+      movestep (-2.0*side_step,  stride, 4-1 );
+      movestep (0,  stride, 2-1 );
+      //movebody ( side_step , 0 );
       if(Serial.available()){
         inPut = Serial.parseFloat();
         Serial.print( "the input is: ");
@@ -137,7 +147,7 @@ void creepwalk (float stride){
     
 void movestep (float d_x, float d_y, int leg_no){  // takes step and moves the body in the direction of the step
   Serial.println( "movestep");
-  float dx_body =   0; //d_x/3;
+  float dx_body = 0;
   float dy_body = d_y/3;
   int i;
   //d_x = d_x + dx_body;
@@ -163,7 +173,7 @@ void movestep (float d_x, float d_y, int leg_no){  // takes step and moves the b
   leg_pos[2][leg_no] -= 65;
   transformation (leg_no);
   
-   for (i = 0; i < 4; i++){
+  for (i = 0; i < 4; i++){
     if(i != leg_no){
       
       leg_pos[0][i] -= dx_body/2;  // body moves forward next half 1/3 of the step (refer to excel sheet
@@ -181,23 +191,22 @@ void movebody (float d_x, float d_y){
         
      leg_pos[0][i] += d_x; 
      leg_pos[1][i] += d_y;
-     transformation (i);
-  
+     transformation (i);  
   }
   smooth_actuation ();
 }
 
 void home_pos (){
-  
+    
   int i, j;
   for (i = 0; i < 3; i++) {
     for ( j = 0; j < 4; j++){
        leg_pos [i][j] = 0;
        servo_pos [i][j] = 0; 
     }
-   }
- 
+  } 
 }
+
 void body_rotation (float alpha, float beta, float gamma){
   
   float i, x, y, z, x_r, y_r, z_r;
@@ -241,29 +250,35 @@ void transformation (int leg_no){ //leg no  0,1,2,3 tranforms body coord to leg 
 
   switch (leg_no){
     case 0:
-    t_angle = PI/4;
-    break;
+      t_angle = PI/4;
+      
+      break;
     case 1:
-    t_angle = PI*7/4;
-    break;
+      t_angle = PI*7/4;
+      x = -1.0*leg_pos[0][leg_no]+leg_initial [0][leg_no];
+      y = -1.0*leg_pos[1][leg_no]+leg_initial [1][leg_no];
+      break;
     case 2:
-    t_angle = PI*3/4;
-    break;
+      t_angle = PI*3/4;
+      x = -1.0*leg_pos[0][leg_no]+leg_initial [0][leg_no];
+      y = -1.0*leg_pos[1][leg_no]+leg_initial [1][leg_no];
+      break;
     case 3:
-    t_angle = PI*5/4;
-    break;
+      t_angle = PI*5/4;
+      break;
     default:
-    Serial.print('something is wrong');
+      Serial.print("something is wrong");
   }
   t_x = x * cos( t_angle ) + y * sin (t_angle); 
   t_y = x * cos( t_angle ) - y * sin (t_angle);
   t_z = z;
-  /*Serial.print( leg_no); Serial.print("\t"); //test printing
+  Serial.println("Post transformation");
+  Serial.print( leg_no); Serial.print("\t"); //test printing
   Serial.print( t_angle); Serial.print("\t");
   Serial.print(  t_x ); Serial.print("\t");
   Serial.print(  t_y ); Serial.print("\t");
   Serial.print(  t_z ); Serial.print("\t");
-  Serial.print("\n"); */
+  Serial.print("\n"); 
   inverse_kinametic ( t_x, t_y, t_z, leg_no);
 
 }
@@ -278,9 +293,7 @@ void inverse_kinametic ( float x, float y, float z, int leg_no){ //inputs transf
   float coxatofoot = sqrt( pow(z_offset, 2) + pow((x_proj- coxa), 2));
   float ika_1 = acos( z_offset / coxatofoot);
   float ika_2 = acos((pow(tibia,2 ) - pow(fermur, 2)- pow(coxatofoot, 2))/(-2*fermur*coxatofoot));
-  
   float alpha = ika_1 + ika_2;
-  
   float beta = acos((pow(coxatofoot,2 ) - pow(tibia, 2)- pow(fermur, 2))/(-2*tibia*fermur));
   
   /*Serial.print( leg_no); Serial.print("\t"); //test printing
@@ -291,7 +304,7 @@ void inverse_kinametic ( float x, float y, float z, int leg_no){ //inputs transf
   
   // all servo position are in radians and need to be convirted to PWM signals
   if ( leg_no == 1 || leg_no == 2){
-    servo_pos [0][leg_no] = gamma + PI/2; // compensates for opposite motor positions-NO IDEA HOW THIS WORKS
+    servo_pos [0][leg_no] = -gamma + PI/2; // compensates for opposite motor positions-NO IDEA HOW THIS WORKS
   }
   else{
     servo_pos [0][leg_no] = gamma + PI/2;
@@ -419,13 +432,3 @@ float mapfloat(float x, float in_min, float in_max, float out_min, float out_max
 {
   return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
-  
-  
-  
-  
-  
-  
-  
-
-  
-  
