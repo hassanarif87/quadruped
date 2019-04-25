@@ -59,7 +59,7 @@ void loop (){
     inPut =0;
   }*/
   Serial.println("loop");
-  delay(1000);
+  delay(3000);
  
   int state = 2;
   if (state == 1 ){
@@ -272,13 +272,13 @@ void transformation (int leg_no){ //leg no  0,1,2,3 tranforms body coord to leg 
   t_x = x * cos( t_angle ) + y * sin (t_angle); 
   t_y = x * cos( t_angle ) - y * sin (t_angle);
   t_z = z;
-  Serial.println("Post transformation");
+  /*Serial.println("Post transformation");
   Serial.print( leg_no); Serial.print("\t"); //test printing
   Serial.print( t_angle); Serial.print("\t");
   Serial.print(  t_x ); Serial.print("\t");
   Serial.print(  t_y ); Serial.print("\t");
   Serial.print(  t_z ); Serial.print("\t");
-  Serial.print("\n"); 
+  Serial.print("\n"); */
   inverse_kinametic ( t_x, t_y, t_z, leg_no);
 
 }
@@ -286,7 +286,7 @@ void transformation (int leg_no){ //leg no  0,1,2,3 tranforms body coord to leg 
   
 
 void inverse_kinametic ( float x, float y, float z, int leg_no){ //inputs transformed cordinates to convert them to servo angles
-  //Serial.println( "IK");
+  Serial.println( "IK");
   float z_offset = abs(z);
   float gamma = atan ( y / x );
   float x_proj = x / cos(gamma);
@@ -311,11 +311,11 @@ void inverse_kinametic ( float x, float y, float z, int leg_no){ //inputs transf
   }
   servo_pos [1][leg_no] = alpha ;  
   servo_pos [2][leg_no] = beta ;
- 
-  /*Serial.print(  servo_pos [0][leg_no] ); Serial.print("\t");
+  Serial.print(  leg_no ); Serial.print("\t");
+  Serial.print(  servo_pos [0][leg_no] ); Serial.print("\t");
   Serial.print(  servo_pos [1][leg_no] ); Serial.print("\t");
   Serial.print(  servo_pos [2][leg_no] ); Serial.print("\t");
-  Serial.print("\n");*/
+  Serial.print("\n");
   
 }
 void smooth_actuation(){
