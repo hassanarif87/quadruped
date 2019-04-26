@@ -59,9 +59,9 @@ void loop (){
     inPut =0;
   }*/
   Serial.println("loop");
-  delay(3000);
+  delay(1000);
  
-  int state = 2;
+  int state = 1;
   if (state == 1 ){
     creepwalk ( 80 );
   }
@@ -73,7 +73,7 @@ void loop (){
     home_pos();
   }
   if (state == 4 ){  
-    movebody(15,0);
+    movebody(10,0);
   }
 }
 
@@ -107,8 +107,7 @@ void single_step (float d_x, float d_y, int leg_no){
   leg_pos[1][leg_no] -= d_y;
   transformation (leg_no);
   motor_actuation();
-}
-  
+}  
 void creepwalk (float stride){
   
   Serial.println( "Creepwalk");
@@ -117,8 +116,8 @@ void creepwalk (float stride){
   
   //if(Serial.available()){
     
-  //movebody( -side_step, 0 );
-  movestep(-side_step, stride/2, 4-1 );  //leg =3
+  movebody( -side_step, 0 );
+  movestep(0, stride/2, 4-1 );  //leg =3
   movestep(0, stride/2, 2-1 );
   //movebody( side_step , 0);
    //}
@@ -128,14 +127,14 @@ void creepwalk (float stride){
   //for ( i = 0; i <5; i ++){} //takes 5 cycles 
     
     while ( inPut != 3 ){
-      //movebody ( side_step , 0);
-      movestep (2.0*side_step,  stride, 3-1 );
+      movebody (2.0*side_step , 0);
+      movestep (0,  stride, 3-1 );
       movestep (0,  stride, 1-1 );
     
-      //movebody (-side_step*2 , 0);
-      movestep (-2.0*side_step,  stride, 4-1 );
+      movebody (-2.0*side_step , 0);
+      movestep (0,  stride, 4-1 );
       movestep (0,  stride, 2-1 );
-      //movebody ( side_step , 0 );
+      //movebody ( 0 , 0 );
       if(Serial.available()){
         inPut = Serial.parseFloat();
         Serial.print( "the input is: ");
@@ -144,7 +143,6 @@ void creepwalk (float stride){
     }
 
 }
-    
 void movestep (float d_x, float d_y, int leg_no){  // takes step and moves the body in the direction of the step
   Serial.println( "movestep");
   float dx_body = 0;
@@ -186,14 +184,14 @@ void movestep (float d_x, float d_y, int leg_no){  // takes step and moves the b
 }
 
 void movebody (float d_x, float d_y){
-  int i;
-    for (i = 0; i < 4; i++){
+
+  for (int i = 0; i < 4; i++){
         
      leg_pos[0][i] += d_x; 
      leg_pos[1][i] += d_y;
      transformation (i);  
   }
-  smooth_actuation ();
+  smooth_actuation();
 }
 
 void home_pos (){
